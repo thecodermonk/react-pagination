@@ -4,18 +4,22 @@ import "./App.css";
 function App() {
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const fetchProducts = () => {
-    fetch("https://dummyjson.com/products")
+    fetch(`https://dummyjson.com/products?limit=10&skip=${page * 10 - 10}`)
       .then((res) => res.json())
-      .then((data) => setProducts(data.products));
+      .then((data) => {
+        setProducts(data.products);
+        setTotalPages(data.total / 10);
+      });
   };
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [page]);
   const handlePage = (selectedPage: number) => {
     if (
       selectedPage >= 1 &&
-      selectedPage <= products.length / 10 &&
+      selectedPage <= totalPages &&
       selectedPage !== page
     ) {
       setPage(selectedPage);
@@ -25,7 +29,7 @@ function App() {
     <>
       {products.length ? (
         <div className="products">
-          {products.slice(page * 10 - 10, page * 10).map((product: any) => (
+          {products.map((product: any) => (
             <div key={product.id} className="products__single">
               <img src={product.thumbnail} alt={product.title} />
               <span>{product.title}</span>
@@ -45,7 +49,7 @@ function App() {
           >
             Previous
           </span>
-          {[...Array(products.length / 10)].map((_, i) => {
+          {[...Array(totalPages)].map((_, i) => {
             return (
               <span
                 key={i}
@@ -57,7 +61,7 @@ function App() {
             );
           })}
           <span
-            className={page < products.length / 10 ? "" : "pagination__disable"}
+            className={page < totalPages ? "" : "pagination__disable"}
             onClick={() => handlePage(page + 1)}
           >
             Next
